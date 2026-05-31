@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HazLo - Lista de Tareas</title>
+    <!-- Iconos profesionales Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --primary: #007aff;
+            --danger: #ff3b30;
+            --text-main: #1c1c1e;
+            --text-muted: #8e8e93;
+            --border: #e5e5ea;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 393px; /* Ancho de pantalla iPhone 15 */
+        }
+
+        /* Cabecera */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-icon {
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 3px 8px rgba(0,122,255,0.25);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        h1 span {
+            color: var(--primary);
+        }
+
+        /* Formulario */
+        .task-form {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 16px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background: #fafafa;
+        }
+
+        select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #fafafa;
+            outline: none;
+            color: var(--text-main);
+        }
+
+        .btn-add {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* Filtro */
+        .btn-filter {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .btn-filter.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Tarjetas de Tareas */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .task-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* COLUMNA IZQUIERDA: Texto maximizado */
+        .task-text-col {
+            flex: 1; 
+            display: flex;
+            align-items: center; 
+            cursor: pointer;
+            padding-right: 10px;
+        }
+
+        .task-text {
+            font-size: 15px;
+            line-height: 1.4;
+            color: var(--text-main);
+            word-break: break-word;
+            
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .task-item.expanded .task-text {
+            display: block;
+            overflow: visible;
+            -webkit-line-clamp: unset;
+        }
+
+        /* COLUMNA DERECHA: Zona de control fija ultra compacta (72px) */
+        .task-ctrl-col {
+            flex: 0 0 72px; 
+            border-left: 1px solid #f2f2f7;
+            padding-left: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrl-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .task-badge {
+            font-size: 11px;
+            font-weight: 700;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-corto { background-color: #e4f2ff; color: #007aff; }
+        .badge-medio { background-color: #fff2e0; color: #ff9500; }
+
+        .ctrl-bottom-row {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .btn-action {
+            background: #f2f2f7;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .btn-action:active {
+            background-color: var(--border);
+        }
+
+        .btn-delete {
+            color: var(--danger);
+            background: transparent;
+            width: 24px;
+            height: 24px;
+            font-size: 13px;
+        }
+        
+        .btn-delete:active {
+            background-color: #ffebe9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Cabecera con marca HazLo -->
+        <header>
+            <div class="app-brand">
+                <div class="app-icon">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+                <h1>Haz<span>Lo</span></h1>
+            </div>
+            <button class="btn-filter" id="filterBtn" onclick="toggleFilter()">
+                <i class="fa-solid fa-filter"></i> <span id="filterText">Todos</span>
+            </button>
+        </header>
+
+        <!-- Formulario -->
+        <form class="task-form" id="todoForm" onsubmit="handleFormSubmit(event)">
+            <div class="input-row">
+                <input type="text" id="taskInput" placeholder="Nueva tarea..." autocomplete="off" required>
+                <select id="deadlineInput">
+                    <option value="corto">Corto</option>
+                    <option value="medio">Medio</option>
+                </select>
+                <button type="submit" class="btn-add"><i class="fa-solid fa-plus"></i></button>
+            </div>
+        </form>
+
+        <!-- Lista de Tareas -->
+        <ul class="task-list" id="taskList"></ul>
+    </div>
+
+    <script>
+        // Memoria persistente nativa (LocalStorage)
+        let tasks = JSON.parse(localStorage.getItem('hazlo_tasks')) || [
+            { id: 1, text: "Bienvenido a HazLo. Los cambios en el orden, las nuevas tareas o los borrados se quedan consolidados automáticamente al salir.", deadline: "corto" },
+            { id: 2, text: "Subir archivo index.html a GitHub", deadline: "medio" }
+        ];
+        
+        let currentFilter = 'todos';
+
+        function saveTasks() {
+            localStorage.setItem('hazlo_tasks', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            const listElement = document.getElementById('taskList');
+            listElement.innerHTML = '';
+
+            const filteredTasks = tasks.filter(task => {
+                if (currentFilter === 'todos') return true;
+                return task.deadline === currentFilter;
+            });
+
+            filteredTasks.forEach((task) => {
+                const actualIndex = tasks.findIndex(t => t.id === task.id);
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                
+                const isFirst = actualIndex === 0;
+                const isLast = actualIndex === tasks.length - 1;
+                
+                const letterBadge = task.deadline.charAt(0).toUpperCase();
+                
+                li.innerHTML = `
+                    <!-- COLUMNA IZQUIERDA -->
+                    <div class="task-text-col" onclick="toggleExpand(this)">
+                        <div class="task-text">${task.text}</div>
+                    </div>
+                    
+                    <!-- COLUMNA DERECHA -->
+                    <div class="task-ctrl-col">
+                        <div class="ctrl-top-row">
+                            <span class="task-badge badge-${task.deadline}">${letterBadge}</span>
+                            <button type="button" class="btn-action btn-delete" onclick="deleteTask(${task.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="ctrl-bottom-row">
+                            <button type="button" class="btn-action" onclick="moveTask(${actualIndex}, -1)" ${isFirst ? 'style="opacity:0.25; pointer-events:none;"' : ''}>
+                                <i class="fa-solid fa-arrow-up"></i>
+                            </button>
+                            <button type="button" class="btn-action" onclick="moveTask(${actualIndex}, 1)" ${isLast ? 'style="opacity:0.25; pointer-events:none;"' : ''}>
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listElement.appendChild(li);
+            });
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const input = document.getElementById('taskInput');
+            const deadlineSelect = document.getElementById('deadlineInput');
+            
+            if (input.value.trim() === '') return;
+
+            tasks.push({
+                id: Date.now(),
+                text: input.value.trim(),
+                deadline: deadlineSelect.value
+            });
+            
+            saveTasks();
+            renderTasks();
+            input.value = '';
+            input.blur();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(task => task.id !== id);
+            saveTasks();
+            renderTasks();
+        }
+
+        function moveTask(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= tasks.length) return;
+            
+            const temp = tasks[index];
+            tasks[index] = tasks[targetIndex];
+            tasks[targetIndex] = temp;
+            
+            saveTasks();
+            renderTasks();
+        }
+
+        function toggleExpand(element) {
+            const item = element.parentElement;
+            item.classList.toggle('expanded');
+        }
+
+        function toggleFilter() {
+            const filterBtn = document.getElementById('filterBtn');
+            const filterText = document.getElementById('filterText');
+
+            if (currentFilter === 'todos') {
+                currentFilter = 'corto';
+                filterText.innerText = 'Corto';
+                filterBtn.classList.add('active');
+            } else if (currentFilter === 'corto') {
+                currentFilter = 'medio';
+                filterText.innerText = 'Medio';
+                filterBtn.classList.add('active');
+            } else {
+                currentFilter = 'todos';
+                filterText.innerText = 'Todos';
+                filterBtn.classList.remove('active');
+            }
+            renderTasks();
+        }
+
+        renderTasks();
+    </script>
+</body>
+</html>
