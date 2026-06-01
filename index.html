@@ -157,7 +157,7 @@
             align-items: stretch;
         }
 
-        /* COLUMNA IZQUIERDA: Espacio optimizado de texto */
+        /* COLUMNA IZQUIERDA */
         .task-text-col {
             flex: 1; 
             display: flex;
@@ -186,7 +186,6 @@
             -webkit-line-clamp: unset;
         }
 
-        /* Input especial de edición rápida */
         .edit-input {
             width: 100%;
             background: #fff;
@@ -194,7 +193,7 @@
             padding: 6px;
         }
 
-        /* COLUMNA DERECHA: Diseño de control fijo ultra compacto (72px) */
+        /* COLUMNA DERECHA */
         .task-ctrl-col {
             flex: 0 0 72px; 
             border-left: 1px solid #f2f2f7;
@@ -295,10 +294,9 @@
     </div>
 
     <script>
-        // Carga inicial y persistencia
         let tasks = JSON.parse(localStorage.getItem('hazlo_tasks')) || [
-            { id: 1, text: "1 toque: expande. 2 toques rápidos: edita el texto directamente desde tu iPhone.", deadline: "corto" },
-            { id: 2, text: "¡Las nuevas tareas ahora entran arriba del todo de la lista!", deadline: "medio" }
+            { id: 1, text: "Corto plazo entra arriba; Medio plazo entra abajo. 1 toque expande, 2 editan.", deadline: "corto" },
+            { id: 2, text: "Ejemplo de tarea en el listado", deadline: "medio" }
         ];
         
         let currentFilter = 'todos';
@@ -354,6 +352,7 @@
             });
         }
 
+        // NUEVA LÓGICA: Ubicación según el plazo seleccionado
         function handleFormSubmit(event) {
             event.preventDefault();
             const input = document.getElementById('taskInput');
@@ -361,12 +360,17 @@
             
             if (input.value.trim() === '') return;
 
-            // MEJORA: .unshift() mete el objeto al PRINCIPIO del array (arriba de la lista)
-            tasks.unshift({
+            const newTask = {
                 id: Date.now(),
                 text: input.value.trim(),
                 deadline: deadlineSelect.value
-            });
+            };
+
+            if (newTask.deadline === 'corto') {
+                tasks.unshift(newTask); // Corto plazo -> Arriba
+            } else {
+                tasks.push(newTask);    // Medio plazo -> Abajo
+            }
             
             saveTasks();
             renderTasks();
@@ -374,7 +378,6 @@
             input.blur();
         }
 
-        // Lógica inteligente para diferenciar toque simple (expandir) de toque doble (editar) en móvil
         let touchTimer = null;
         function handleTaskClick(event, element) {
             if (event.detail === 1) {
@@ -387,7 +390,6 @@
             }
         }
 
-        // Activar el modo edición reemplazando temporalmente el texto por un input
         function startEdit(id, element) {
             const currentText = element.innerText;
             const parent = element.parentElement;
@@ -396,13 +398,12 @@
             
             const input = parent.querySelector('.edit-input');
             input.focus();
-            // Colocar cursor al final del texto
             input.setSelectionRange(input.value.length, input.value.length);
         }
 
         function checkEditEnter(event, id, inputElement) {
             if (event.key === 'Enter') {
-                inputElement.blur(); // Llama automáticamente a saveEdit
+                inputElement.blur();
             }
         }
 
